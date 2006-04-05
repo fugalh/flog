@@ -1,0 +1,18 @@
+# flog
+A simple $EDITOR blogging client.
+
+## Requirements
+- [Blog::Client](http://raa.ruby-lang.org/project/blogclient/)
+
+## Synopsis
+Run `flog` and edit the post template in $EDITOR. When done, save and exit
+$EDITOR and your post will be submitted.
+
+Alternatively, pass in your post as an argument or on stdin. 
+
+`flog -h` for other options.
+
+## Configuration 
+
+    $ flog --dump-default-config > ~/.flogrc
+    $ $EDITOR ~/.flogrc

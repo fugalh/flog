@@ -1,0 +1,69 @@
+#!/usr/bin/ruby
+require 'yaml'
+require 'tempfile'
+
+DEFAULT_CONFIG = <<EOF
+blog_url: 'http://localhost:3000/backend/xmlrpc'
+blogid: 1
+username: fugalh
+password: divino
+textFilter: markdown
+template: |
+  # You are editing two YAML documents. If you are not familiar with YAML, 
+  # visit http://yaml.org/ 
+  
+  # The first document is parameters and configuration. The config file is
+  # overridden.
+  # Valid keys: 
+  #   title, categories (list), mt_keywords (string), mt_tb_ping_urls,
+  #   dateCreated, permaLink, publish, mt_allow_comments, mt_allow_pings,
+  #   blog_url, blogid, username, password
+  
+  title: 
+  categories: []
+  mt_keywords: 
+  
+  # The rest of this file is the second YAML document, 
+  # i.e. the body of your post
+  --- |
+EOF
+
+# Read config
+p = ENV['HOME']+'/.flogrc'
+if File.exist?(p)
+  s = File.read(p)
+else
+  s = DEFAULT_CONFIG
+end
+config = YAML.load(s)
+
+# User edit
+tmp = Tempfile.new('flog')
+tmp.write config['template']
+tmp.close
+system ENV['EDITOR'], tmp.path
+
+# read post
+tmp.open
+params,post = YAML.load_stream(tmp).documents
+contents = config.dup
+%w(username password blog_url blogid template).each {|k| 
+  contents.delete(k)
+  if params.has_key?(k)
+    config[k] = params[k]
+    params.delete(k)
+  end
+}
+contents.merge!(params)
+contents['description'] = post
+contents['dateCreated'] ||= Time.now
+puts contents.inspect
+
+# post post
+require 'blog/client'
+blog = Blog::Client.new(config['blog_url'],'appkey',
+			config['username'],config['password'])
+print 'Posting...'
+blog.metaWeblog_newPost(config['blogid'], contents,
+			!(config['publish'] == false))
+puts 'done.'
