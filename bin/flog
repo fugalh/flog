@@ -6,7 +6,7 @@ DEFAULT_CONFIG = <<EOF
 blog_url: 'http://localhost:3000/backend/xmlrpc'
 blogid: 1
 username: fugalh
-password: divino
+password: secret
 textFilter: markdown
 template: |
   # You are editing two YAML documents. If you are not familiar with YAML, 
