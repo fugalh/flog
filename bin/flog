@@ -69,8 +69,7 @@ contents = config.dup
 }
 contents.merge!(params)
 contents['description'] = post
-contents['dateCreated'] ||= Time.now
-puts contents.inspect
+contents['dateCreated'] ||= Time.now.utc
 
 # post post
 require 'blog/client'
