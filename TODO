@@ -2,3 +2,4 @@
     - dump config
     - dump template
 - publish == false doesn't work? 
+- position cursor?
