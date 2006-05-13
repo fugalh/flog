@@ -1,6 +1,13 @@
-#!/usr/bin/ruby
+#! /usr/bin/ruby
 require 'yaml'
 require 'tempfile'
+
+# We sometimes want the tempfile to persist, a la Debian's reportbug
+class Tempfile
+  def persist
+    ObjectSpace.undefine_finalizer(self)
+  end
+end
 
 DEFAULT_CONFIG = <<EOF
 blog_url: 'http://localhost:3000/backend/xmlrpc'
@@ -43,9 +50,15 @@ tmp.write config['template']
 tmp.close
 system ENV['EDITOR'], tmp.path
 
+# abort?
+post = File.read(tmp.path)
+if post == config['template']
+  puts "Template unchanged. Aborting."
+  exit
+end
+
 # read post
-tmp.open
-params,post = YAML.load_stream(tmp).documents
+params,post = YAML.load_stream(post).documents
 contents = config.dup
 %w(username password blog_url blogid template).each {|k| 
   contents.delete(k)
@@ -64,6 +77,14 @@ require 'blog/client'
 blog = Blog::Client.new(config['blog_url'],'appkey',
 			config['username'],config['password'])
 print 'Posting...'
-blog.metaWeblog_newPost(config['blogid'], contents,
-			!(config['publish'] == false))
-puts 'done.'
+begin
+  blog.metaWeblog_newPost(config['blogid'], contents,
+			  !(config['publish'] == false))
+  puts 'done.'
+rescue
+  tmp.persist
+  puts "failed. Your post will remain in #{tmp.path}."
+  puts "Please enjoy this backtrace."
+  puts
+  raise $!
+end
