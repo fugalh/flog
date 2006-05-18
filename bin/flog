@@ -1,6 +1,7 @@
 #! /usr/bin/ruby
 require 'yaml'
 require 'tempfile'
+require 'optparse'
 
 # We sometimes want the tempfile to persist, a la Debian's reportbug
 class Tempfile
@@ -34,6 +35,17 @@ template: |
   # i.e. the body of your post
   --- |
 EOF
+
+# Options
+OptionParser.new do |opts|
+  opts.banner = "Usage: #{$0} [options]"
+  opts.on('-d','--dump-default-config', 
+	  'To help create ~/.flogrc') do
+    puts DEFAULT_CONFIG 
+    exit 
+  end
+  opts.on('-h','--help','This message') { puts opts; exit }
+end.parse!
 
 # Read config
 p = ENV['HOME']+'/.flogrc'
