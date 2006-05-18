@@ -75,7 +75,7 @@ contents['dateCreated'] ||= Time.now.utc
 require 'blog/client'
 blog = Blog::Client.new(config['blog_url'],'appkey',
 			config['username'],config['password'])
-print 'Posting...'
+print 'Posting...'; $stdout.flush
 begin
   blog.metaWeblog_newPost(config['blogid'], contents,
 			  !(config['publish'] == false))
