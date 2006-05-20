@@ -62,39 +62,40 @@ tmp.write config['template']
 tmp.close
 system ENV['EDITOR'], tmp.path
 
-# abort?
-post = File.read(tmp.path)
-if post == config['template']
-  puts "Template unchanged. Aborting."
-  exit
-end
-
-# read post
-params,post = YAML.load_stream(post).documents
-contents = config.dup
-%w(username password blog_url blogid template).each {|k| 
-  contents.delete(k)
-  if params.has_key?(k)
-    config[k] = params[k]
-    params.delete(k)
-  end
-}
-contents.merge!(params)
-contents['description'] = post
-contents['dateCreated'] ||= Time.now.utc
-
-# post post
-require 'blog/client'
-blog = Blog::Client.new(config['blog_url'],'appkey',
-			config['username'],config['password'])
-print 'Posting...'; $stdout.flush
 begin
+  # abort?
+  post = File.read(tmp.path)
+  if post == config['template']
+    puts "Template unchanged. Aborting."
+    exit
+  end
+
+  # read post
+  params,post = YAML.load_stream(post).documents
+  contents = config.dup
+  %w(username password blog_url blogid template).each {|k| 
+    contents.delete(k)
+    if params.has_key?(k)
+      config[k] = params[k]
+      params.delete(k)
+    end
+  }
+  contents.merge!(params)
+  contents['description'] = post
+  contents['dateCreated'] ||= Time.now.utc
+
+  # post post
+  require 'blog/client'
+  blog = Blog::Client.new(config['blog_url'],'appkey',
+			  config['username'],config['password'])
+  print 'Posting...'; $stdout.flush
   blog.metaWeblog_newPost(config['blogid'], contents,
 			  !(config['publish'] == false))
   puts 'done.'
+
 rescue
   tmp.persist
-  puts "failed. Your post will remain in #{tmp.path}."
+  puts "Exception raised. Your post will remain in #{tmp.path}."
   puts "Please enjoy this backtrace."
   puts
   raise $!
