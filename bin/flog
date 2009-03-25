@@ -58,6 +58,7 @@ config = YAML.load(s)
 
 # User edit
 tmp = Tempfile.new('flog')
+tmp.persist
 tmp.write config['template']
 tmp.close
 system ENV['EDITOR'], tmp.path
@@ -92,9 +93,9 @@ begin
   blog.metaWeblog_newPost(config['blogid'], contents,
 			  !(config['publish'] == false))
   puts 'done.'
+  tmp.delete
 
 rescue
-  tmp.persist
   puts "Exception raised. Your post will remain in #{tmp.path}."
   puts "Please enjoy this backtrace."
   puts
